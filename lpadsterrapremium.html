@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Hot</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .live-container {
+      position: relative;
+      width: 100%;
+      max-width: 430px;
+      aspect-ratio: 9 / 16;
+      background: #000;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #000;
+    }
+
+    .live-video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    .play-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 50%;
+      padding: 18px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .play-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .play-button svg {
+      width: 32px;
+      height: 32px;
+      fill: #fff;
+    }
+
+    .loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      z-index: 4;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .header {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      margin-right: 10px;
+    }
+
+    .header-info {
+      color: #fff;
+    }
+
+    .header-info .name {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .header-info .id {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .gift-banner {
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      background: linear-gradient(to right, #ff3c5f, #ff7b8a);
+      padding: 5px 15px;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 12px;
+      z-index: 2;
+      box-shadow: 0 0 10px #ff3c5f;
+    }
+
+    .chat-box {
+      position: absolute;
+      bottom: 120px;
+      left: 10px;
+      width: calc(100% - 20px);
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 13px;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px;
+      border-radius: 12px;
+      scrollbar-width: none;
+    }
+
+    .chat-box::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .chat-message {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 6px 14px;
+      border-radius: 20px;
+      color: #fff;
+      width: fit-content;
+      max-width: 80%;
+      word-break: break-word;
+      backdrop-filter: blur(6px);
+      animation: chatFadeIn 0.3s ease forwards;
+      transform: translateX(-10px);
+      opacity: 0;
+    }
+
+    @keyframes chatFadeIn {
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .chat-input-container {
+      position: absolute;
+      bottom: 60px;
+      left: 10px;
+      width: calc(100% - 20px);
+      display: none; /* Awalnya disembunyikan */
+      flex;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 25px;
+      padding: 8px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .send-button {
+      background: linear-gradient(to right, #ff3c5f, #ff7b8a);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .send-button:hover {
+      transform: scale(1.1);
+    }
+
+    .bottom-bar {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.6);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+
+    .bottom-bar img {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(to bottom, #ff3c5f, #ff7b8a);
+      padding: 8px;
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.3s;
+      filter: drop-shadow(0 0 4px #000);
+      cursor: pointer;
+    }
+
+    .bottom-bar img:hover {
+      transform: scale(1.2);
+      background: linear-gradient(to bottom, #ff7b8a, #ff3c5f);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="live-container">
+    <img class="live-video" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5uDBsOeeeLTmGyl0MDO48J1ZgPrIY0yitzvRxFWHU4Hj9dMNvTxv6Ujce4SLFnU8QiBT19FcboWeIil7EO9CQU5V581RrYWPNXbVpHO7lmRLBoy-6AExOPt4CIgfrl0dyUcZoiPPISqdET6cB3HGa5w1vbl1ZVv3RM2GstsaHO4YnCNjCV4_8ZHCXeqM/s1024/WhatsApp%20Image%202025-06-29%20at%2013.40.10.jpeg" alt="Live Stream" />
+
+    <div class="play-button" onclick="startBuffering()">
+      <svg viewBox="0 0 24 24">
+        <path d="M8 5v14l11-7z" />
+      </svg>
+    </div>
+
+    <div class="loader" id="loader"></div>
+
+    <div class="header">
+      <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjUJR3NutlWmSR6PjbismVNWxji7n3GoeNFo2dZS_BsxAYBo-D9XqclwbvP6cf5ApwWKJD3_RJNCS4HkoJnhHFh8uc4fGRSS5NWV8tbgAmHPgKqb2iRsu6Z_vG-cwq10Sdj2k1XQPDZLL7KKuOMpgAkeQcueUCQf0-mXlEwr91MmbBFj-2XD8TouHqKYgZo/s320/WhatsApp%20Image%202025-06-29%20at%2013.40.10.jpeg" alt="Profile">
+      <div class="header-info">
+        <div class="name">Safana_oktavia</div>
+        <div class="id">ID: 8791911</div>
+      </div>
+    </div>
+
+    <div class="gift-banner">🎁 Just-G won 500x diamonds with you!</div>
+
+    <div class="chat-box">
+      <div class="chat-messages" id="chatMessages"></div>
+    </div>
+
+    <div class="chat-input-container" id="chatInputContainer">
+      <input type="text" class="chat-input" id="userMessage" placeholder="Type a message..." maxlength="100">
+      <button class="send-button" onclick="redirectDirectly()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="bottom-bar">
+      <img src="https://cdn-icons-png.flaticon.com/512/889/889140.png" alt="Emoji">
+      <img src="https://cdn-icons-png.flaticon.com/512/2462/2462719.png" alt="Chat" onclick="toggleChatInput()">
+      <img src="https://cdn-icons-png.flaticon.com/512/482/482661.png" alt="Gift">
+      <img src="https://cdn-icons-png.flaticon.com/512/709/709496.png" alt="Share">
+      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828778.png" alt="Close">
+    </div>
+  </div>
+
+  <script>
+function startBuffering() {
+  document.querySelector('.play-button').style.display = 'none';
+  document.getElementById('loader').style.display = 'block';
+  setTimeout(function () {
+    window.open("IKLANADSTERRA", "_blank");
+    document.querySelector('.play-button').style.display = 'block';
+    document.getElementById('loader').style.display = 'none';
+  }, 1000);
+}
+
+    function toggleChatInput() {
+      const chatInput = document.getElementById('chatInputContainer');
+      if (chatInput.style.display === 'flex') {
+        chatInput.style.display = 'none';
+      } else {
+        chatInput.style.display = 'flex';
+        document.getElementById('userMessage').focus();
+      }
+    }
+
+    function redirectDirectly() {
+      window.location.href = "IKLANADSTERRA";
+      return false;
+    }
+
+    const chatData = [
+      "💬 7814704660: 😍😍😍",
+      "💬 Bang Jacks: haha lucu",
+      "💬 mango89741664 joined the LIVE",
+      "💬 Nana: cantikkkk 😍",
+      "💬 Dinda: salam dari Surabaya ❤️",
+      "💬 Rizky: suaranya enak banget 🥰",
+      "💬 Vina: mau ikut live juga hehe",
+      "💬 Bagas: halo kak 👋",
+      "💬 Andre: pink outfitnya lucu banget",
+      "💬 Yogi: asli ini kayak bidadari 🌸",
+      "💬 Salsa: mantap banget live-nya",
+      "💬 agung: wow guede banget",
+      "💬 Reza: tambah semangat nih 😄"
+    ];
+
+    const chatContainer = document.getElementById("chatMessages");
+    let i = 0;
+    setInterval(() => {
+      if (i < chatData.length) {
+        const div = document.createElement("div");
+        div.className = "chat-message";
+        div.textContent = chatData[i];
+        chatContainer.appendChild(div);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        i++;
+      }
+    }, 1300);
+
+    document.getElementById('userMessage').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        redirectDirectly();
+      }
+    });
+  </script>
+
+</body>
+</html>
