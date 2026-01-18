@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Live Streaming Bola - CazéTV</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #071b3b;
+      color: #fff;
+      line-height: 1.5;
+    }
+
+    .topnav {
+      background: #000;
+      text-align: center;
+      padding: 12px 0;
+    }
+    .topnav a {
+      color: #fff;
+      margin: 0 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .topnav a:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 1150px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    .header {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffcc00;
+      margin-bottom: 20px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      margin-bottom: 20px;
+      border: 3px solid #00ff8c;
+      background: #000;
+    }
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: 0;
+    }
+    .live-label {
+      position: absolute;
+      bottom: 8px; left: 8px;
+      background: #00ff8c;
+      color: #000;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .video-info {
+      position: absolute;
+      bottom: 8px; right: 8px;
+      font-size: 12px;
+    }
+    .video-info img {
+      vertical-align: middle;
+      width: 18px;
+      margin-left: 4px;
+    }
+
+    .ads {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .ads img {
+      width: 200px;
+      height: 60px;
+      object-fit: cover;
+    }
+
+    .schedule {
+      background: #102145;
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .schedule h3 {
+      color: #00ff8c;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .schedule ul {
+      list-style: none;
+    }
+    .schedule ul li {
+      font-size: 14px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .schedule ul li:last-child { border-bottom: none; }
+
+    /* Status Badge */
+    .status-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .status-soon {
+      background-color: rgba(0, 255, 140, 0.15);
+      color: #00ff8c;
+    }
+    .status-finished {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ccc;
+    }
+
+    /* Animasi Berkedip untuk Live Sekarang */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .status-live {
+      background-color: #00ff8c;
+      color: #000;
+      animation: blink 1s infinite;
+    }
+
+    .chat-box {
+      background: #000f2e;
+      border: 1px solid #2e4b7b;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 40px;
+    }
+    .chat-header {
+      background: #113c7a;
+      color: #fff;
+      padding: 8px;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .chat-message {
+      margin: 12px 0;
+      color: #ffeb3b;
+      font-size: 13px;
+    }
+    .chat-footer {
+      display: flex;
+    }
+    .chat-footer input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 4px 0 0 4px;
+      border: none;
+      font-size: 13px;
+    }
+    .chat-footer button {
+      padding: 8px 16px;
+      background: #00ff8c;
+      border: none;
+      border-radius: 0 4px 4px 0;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .topnav a { margin: 0 8px; font-size: 12px; }
+      .header { font-size: 20px; }
+      .ads img { width: 45%; }
+      .schedule, .chat-box { padding: 12px; }
+    }
+    @media (max-width: 480px) {
+      .ads img { width: 90%; }
+    }
+    .live-label {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ff0000;
+  color: #fff;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  animation: pulse 1s infinite;
+  box-shadow: 0 0 8px rgba(255,0,0,0.7);
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+.ad-container {
+  max-width: 728px; /* maksimal lebar desktop */
+  width: 100%;      /* penuh tapi tidak melebihi max */
+  margin: 20px auto;
+  overflow: hidden; /* jaga agar iframe tidak keluar */
+  text-align: center;
+}
+
+.ad-container iframe {
+  max-width: 100% !important;
+  height: 90px !important;
+  width: 100% !important;
+}
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
+  background: #00ff8c;
+  color: #000;
+  font-weight: bold;
+  padding: 8px 0;
+  border-radius: 4px;
+  box-sizing: border-box;
+  position: relative;
+  user-select: none;
+}
+
+.marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.donation-section {
+  max-width: 600px;
+  margin: 16px auto 40px;
+  text-align: center;
+  color: #00ff8c;
+  font-weight: bold;
+  font-size: 18px;
+  user-select: none;
+}
+
+.donation-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 12px;
+}
+
+.donation-link {
+  flex: 1;
+  background: #00ff8c;
+  color: #000;
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.donation-link:hover {
+  background: #00cc75;
+}
+
+.donation-link img {
+  width: 48px;    /* Besar logo agar jelas */
+  height: auto;
+  object-fit: contain;
+}
+.live-badge {
+  background-color: red;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.upcoming-badge {
+  background-color: orange;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.badge-link {
+  text-decoration: none;
+}
+
+.live-badge,
+.upcoming-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  color: white;
+}
+
+.live-badge {
+  background-color: red;
+}
+
+.upcoming-badge {
+  background-color: orange;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="topnav">
+    <a href="#home">Beranda</a>
+    <a href="#jadwal">Jadwal</a>
+    <a href="#live">Live Sekarang</a>
+    <a href="#chat">Obrolan</a>
+  </nav>
+
+  <main class="container">
+    <!-- HEADER -->
+    <h1 class="header" id="home">Live Streaming Sepak Bola</h1>
+
+    <!-- VIDEO -->
+    <section class="video-wrapper" id="live">
+     <iframe
+  src="https://www.youtube.com/embed/iE-t5F0oeQI?autoplay=1&mute=1"
+  allow="autoplay; fullscreen"
+  allowfullscreen>
+</iframe>
+     <div class="marquee-container">
+  <div class="marquee-text">
+    🔥 Saksikan pertandingan seru LIVE hanya di website kami Jangan lewatkan gol-gol spektakuler dan aksi terbaik dari liga favoritmu! ⚽️🎉
+  </div>
+</div>
+      <div class="live-label">
+  <img src="https://img.icons8.com/ios-filled/20/ffffff/record.png" alt="Live Icon" style="width: 16px; height: 16px;">
+  LIVE
+</div>
+    </section>
+    <!-- IKLAN -->
+   <div class="ad-container">
+  <script type="text/javascript">
+    atOptions = {
+      'key' : 'bcd515fcb057d9614b462f611d66b02e',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  </script>
+  <script type="text/javascript" src="//www.highperformanceformat.com/bcd515fcb057d9614b462f611d66b02e/invoke.js"></script>
+</div>
+
+    <!-- JADWAL -->
+   <div class="schedule" id="jadwal">
+  <h3>Jadwal Hari Ini</h3>
+  <ul>
+    <li>
+      <img src="https://img.icons8.com/ios-filled/16/00ff8c/clock.png" alt="Jam" style="vertical-align: middle; margin-right: 6px;">
+      Arsenal vs Man City — 18:30 WIB
+      <a href="#live" class="badge-link"><span class="live-badge">LIVE</span></a>
+    </li>
+    <li>
+      <img src="https://img.icons8.com/ios-filled/16/00ff8c/clock.png" alt="Jam" style="vertical-align: middle; margin-right: 6px;">
+      Real Madrid vs Sevilla — 21:00 WIB
+      <a href="#live" class="badge-link"><span class="upcoming-badge">Segera</span></a>
+    </li>
+    <li>
+      <img src="https://img.icons8.com/ios-filled/16/00ff8c/clock.png" alt="Jam" style="vertical-align: middle; margin-right: 6px;">
+      Inter Milan vs Juventus — 23:30 WIB
+      <a href="#live" class="badge-link"><span class="upcoming-badge">Segera</span></a>
+    </li>
+  </ul>
+</div>
+
+    <!-- CHAT -->
+    <section class="chat-box" id="chat">
+      <div class="chat-header">💬 Obrolan Langsung</div>
+      <div class="chat-message">
+        🎉 Selamat datang di Live Chat!<br>
+        📌 Mohon gunakan bahasa yang sopan, dilarang promosi atau spam.<br>
+        🤝 Selamat menikmati pertandingan!
+      </div>
+      <div class="chat-footer">
+        <input type="text" placeholder="Tulis pesan di sini...">
+        <button>Kirim</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- DYNAMIC SCRIPTS -->
+  <script>
+    function randomViewers() {
+      const v = Math.floor(Math.random() * 9000) + 1000;
+      document.getElementById('viewerCount').textContent = v.toLocaleString();
+    }
+
+    function updateMatchStatus() {
+      const nowUTC = new Date();
+      const utcMinutes = nowUTC.getUTCHours() * 60 + nowUTC.getUTCMinutes();
+      const wibMinutes = utcMinutes + 420;
+
+      document.querySelectorAll('#jadwalList li').forEach(li => {
+        const timeStr = li.getAttribute('data-time');
+        const [h, m] = timeStr.split(':').map(Number);
+        const matchMinutes = h * 60 + m;
+        const label = li.querySelector('.status-label');
+        label.className = 'status-label';
+
+        if (wibMinutes >= matchMinutes && wibMinutes <= matchMinutes + 120) {
+          label.textContent = 'Live Sekarang';
+          label.classList.add('status-live');
+        } else if (wibMinutes < matchMinutes) {
+          label.textContent = 'Segera Live';
+          label.classList.add('status-soon');
+        } else {
+          label.textContent = 'Selesai';
+          label.classList.add('status-finished');
+        }
+      });
+    }
+
+    window.onload = () => {
+      randomViewers();
+      updateMatchStatus();
+      setInterval(randomViewers, 5000);
+      setInterval(updateMatchStatus, 60000);
+    };
+  </script>
+
+  <!-- 🔗 ADSTERRA SOCIAL BAR (Tambahkan di sini) -->
+  <!-- Contoh: -->
+  <!--
+  <script type="text/javascript">
+    atOptions = {
+      'key' : 'YOUR_SOCIALBAR_KEY',
+      'format' : 'iframe',
+      'height' : 50,
+      'width' : 320,
+      'params' : {}
+    };
+  </script>
+  <script type="text/javascript" src="//www.highperformanceformat.com/YOUR_SOCIALBAR_KEY/invoke.js"></script>
+  -->
+<script type='text/javascript' src='//pl20262610.profitableratecpm.com/0d/83/2f/0d832f8b2982ba46db21726a501e6f5c.js'></script>
+</body>
+</html>
